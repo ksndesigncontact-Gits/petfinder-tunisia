@@ -1,0 +1,5 @@
+{
+  "name": "PetFinder Tunisia",
+  "description": "Une plateforme communautaire pour signaler et retrouver des animaux perdus en Tunisie. Identification par IA, partage WhatsApp et système de matching intelligent.",
+  "requestFramePermissions": ["camera", "geolocation"]
+}
