@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Loader2, LogOut, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../hooks/useAuth';
-import { useLanguage } from '../hooks/useLanguage';
+import { useLanguage, useT } from '../hooks/useLanguage';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -12,6 +12,7 @@ interface AuthModalProps {
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { user, isLoading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut } = useAuth();
   const { lang, setLang } = useLanguage();
+  const t = useT();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,7 +82,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           >
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-display font-bold text-xl text-stone-800">
-                {user ? 'Profil' : 'Se connecter'}
+                {user ? t('profile') : t('loginTitle')}
               </h2>
               <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-xl transition-colors">
                 <X size={20} />
@@ -102,7 +103,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         : 'bg-stone-200 text-stone-600 hover:bg-stone-300'
                     }`}
                   >
-                    {l === 'fr' ? 'FR' : l === 'en' ? 'EN' : 'AR'}
+                    {l === 'fr' ? t('french') : l === 'en' ? t('english') : t('arabic')}
                   </button>
                 ))}
               </div>
@@ -112,14 +113,14 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               // Logged in state
               <div className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
-                  <p className="text-sm text-stone-600">Connecté en tant que :</p>
+                  <p className="text-sm text-stone-600">{t('connectedAs')}</p>
                   <p className="font-bold text-emerald-700">{user.email || 'Utilisateur'}</p>
                 </div>
                 <button
                   onClick={handleSignOut}
                   className="w-full py-3 bg-red-50 text-red-600 rounded-2xl font-bold hover:bg-red-100 transition-all flex items-center justify-center gap-2"
                 >
-                  <LogOut size={18} /> Se déconnecter
+                  <LogOut size={18} /> {t('logout')}
                 </button>
               </div>
             ) : (
@@ -131,9 +132,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   className="w-full py-4 bg-stone-100 text-stone-800 rounded-2xl font-bold hover:bg-stone-200 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? (
-                    <><Loader2 size={18} className="animate-spin" /> Chargement...</>
+                    <><Loader2 size={18} className="animate-spin" /> {t('loading')}</>
                   ) : (
-                    <>🔐 Se connecter avec Google</>
+                    <>{t('signInGoogle')}</>
                   )}
                 </button>
 
@@ -142,7 +143,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <div className="w-full border-t border-stone-200" />
                   </div>
                   <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-white text-stone-500 font-bold uppercase">ou</span>
+                    <span className="px-2 bg-white text-stone-500 font-bold uppercase">{lang === 'fr' ? 'ou' : lang === 'en' ? 'or' : 'أو'}</span>
                   </div>
                 </div>
 
@@ -151,7 +152,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     type="email"
                     value={email}
                     onChange={e => setEmail(e.target.value)}
-                    placeholder="Email"
+                    placeholder={t('emailPlaceholder')}
                     className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
                     disabled={isSubmitting}
                   />
@@ -159,7 +160,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     type="password"
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="Mot de passe"
+                    placeholder={t('passwordPlaceholder')}
                     className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
                     disabled={isSubmitting}
                   />
@@ -176,11 +177,11 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
-                      <><Loader2 size={18} className="animate-spin" /> Traitement...</>
+                      <><Loader2 size={18} className="animate-spin" /> {t('processing')}</>
                     ) : isSignUp ? (
-                      'S\'inscrire'
+                      t('signUp')
                     ) : (
-                      'Se connecter'
+                      t('signInEmail')
                     )}
                   </button>
                 </form>
@@ -190,17 +191,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     onClick={() => { setIsSignUp(!isSignUp); setError(''); setEmail(''); setPassword(''); }}
                     className="text-sm text-emerald-600 font-bold hover:underline"
                   >
-                    {isSignUp ? 'J\'ai déjà un compte' : 'Créer un compte'}
+                    {isSignUp ? t('alreadyHaveAccount') : t('createAccount')}
                   </button>
                 </div>
 
                 <div className="bg-stone-50 p-4 rounded-xl text-center">
-                  <p className="text-xs text-stone-600 mb-2">Ou continuer</p>
+                  <p className="text-xs text-stone-600 mb-2">{t('orContinue')}</p>
                   <button
                     onClick={onClose}
                     className="text-xs font-bold text-stone-700 hover:text-stone-900"
                   >
-                    Sans compte 👤
+                    {t('guestMode')}
                   </button>
                 </div>
               </div>

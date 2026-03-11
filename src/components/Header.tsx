@@ -2,6 +2,7 @@ import React from 'react';
 import { PawPrint, MapPin as MapIcon, LayoutGrid, ShieldCheck, X, LogIn, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
+import { useT } from '../hooks/useLanguage';
 
 interface HeaderProps {
   viewMode: 'list' | 'map';
@@ -14,6 +15,7 @@ interface HeaderProps {
 
 export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onLogoClick, onAuthClick }: HeaderProps) {
   const { user, signOut } = useAuth();
+  const t = useT();
 
   const handleLogout = async () => {
     try {
@@ -64,16 +66,16 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
           <button
             onClick={handleLogout}
             className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
-            title="Se déconnecter"
+            title={t('logout')}
           >
             <LogOut size={14} className="text-red-600" />
-            <span className="text-xs font-bold">Déco</span>
+            <span className="text-xs font-bold">{t('logoutShort')}</span>
           </button>
         ) : (
           <button
             onClick={onAuthClick}
             className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
-            title="Se connecter"
+            title={t('loginTitle')}
           >
             <LogIn size={14} className="text-emerald-600" />
             <span className="text-xs font-bold">Log</span>

@@ -120,10 +120,9 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     const hasPhoto = form.image != null;
     const hasContact = form.contact.replace(/\D/g, '').length === 8;
 
+    // Require either a photo OR a valid contact number
     if (!hasPhoto && !hasContact) {
       newErrors.contact = "Joignez une photo OU un numéro tunisien (8 chiffres).";
-    } else if (!hasContact) {
-      newErrors.contact = "Numéro tunisien invalide (8 chiffres). Ex: +216 22 123 456";
     }
     if (form.description.length < 10) {
       newErrors.description = "Description trop courte (min 10 caractères).";

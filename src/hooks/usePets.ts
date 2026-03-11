@@ -41,7 +41,7 @@ export function usePets(userLocation: [number, number] | null, radiusKm: number 
       fetchPets();
     }, REFRESH_INTERVAL);
     return () => clearInterval(interval);
-  }, [fetchPets, fetchDbStatus]);
+  }, []);
 
   // Filter pets by radius and breed
   const filteredPets = useMemo(() => {
