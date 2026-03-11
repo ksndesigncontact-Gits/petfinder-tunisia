@@ -189,7 +189,6 @@ async function startServer() {
     } catch (err: any) {
       dbStatus.error = err.message;
     }
-    console.log("[DB]", dbStatus);
   };
   checkTables();
 
