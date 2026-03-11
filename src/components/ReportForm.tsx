@@ -5,6 +5,7 @@ import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-lea
 import imageCompression from 'browser-image-compression';
 import { analyzePetImage } from '../services/geminiService';
 import { cn } from '../lib/utils';
+import { useT, useLanguage } from '../hooks/useLanguage';
 import type { ReportForm, INITIAL_FORM } from '../types';
 
 function LocationPicker({ onSelect, initialPos }: { onSelect: (lat: number, lng: number) => void; initialPos?: [number, number] }) {
@@ -26,6 +27,8 @@ interface ReportFormModalProps {
 }
 
 export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocation }: ReportFormModalProps) {
+  const t = useT();
+  const { lang } = useLanguage();
   const [form, setForm] = useState<ReportForm>({
     species: 'dog',
     name: 'Inconnu',
@@ -64,7 +67,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
       try {
         const analysis = await analyzePetImage(base64);
         if (!analysis.isPet) {
-          alert("L'IA a détecté que cette image n'est pas un animal domestique. Veuillez utiliser une vraie photo.");
+          alert(t('aiWillAnalyze').includes('automatiquement') ? "L'IA a détecté que cette image n'est pas un animal domestique. Veuillez utiliser une vraie photo." : "AI detected this image is not a domestic animal. Please use a real photo.");
           setForm(prev => ({ ...prev, image: null, imagePreview: '' }));
           return;
         }
@@ -201,7 +204,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
       >
         {/* Header */}
         <div className="sticky top-0 bg-white/90 backdrop-blur-md z-10 px-6 py-5 border-b border-stone-100 flex items-center justify-between rounded-t-[2.5rem]">
-          <h2 className="font-display font-bold text-xl text-stone-800">Nouveau Signalement</h2>
+          <h2 className="font-display font-bold text-xl text-stone-800">{t('newReport')}</h2>
           <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-xl transition-colors">
             <X size={20} />
           </button>
@@ -213,13 +216,13 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
             className="absolute opacity-0 h-0 w-0" tabIndex={-1} autoComplete="off" />
 
           <div className="bg-red-50 border border-red-200 p-4 rounded-2xl">
-            <p className="text-sm font-bold text-red-700">🚨 Signaler un animal perdu</p>
-            <p className="text-xs text-red-600 mt-1">Aidez-nous à retrouver cet animal !</p>
+            <p className="text-sm font-bold text-red-700">{t('reportLostAnimal')}</p>
+            <p className="text-xs text-red-600 mt-1">{t('helpFindAnimal')}</p>
           </div>
 
           {/* Species */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Espèce</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('species')}</label>
             <div className="grid grid-cols-2 gap-3">
               {(['dog', 'cat'] as const).map(s => (
                 <button key={s} type="button"
@@ -231,7 +234,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
                       : "bg-stone-50 border-stone-200 text-stone-400"
                   )}
                 >
-                  {s === 'dog' ? '🐶 Chien' : '🐱 Chat'}
+                  {s === 'dog' ? t('dog') : t('cat')}
                 </button>
               ))}
             </div>
@@ -240,7 +243,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
           {/* Photo */}
           <div>
             <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-              Photo <span className="text-stone-400 normal-case">(L'IA analysera automatiquement)</span>
+              {t('reportPhoto')} <span className="text-stone-400 normal-case">{t('aiWillAnalyze')}</span>
             </label>
             <label className={cn(
               "flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-3xl cursor-pointer transition-all",
@@ -261,7 +264,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
               ) : (
                 <>
                   <Camera size={32} className="text-stone-400" />
-                  <span className="text-sm text-stone-500 font-medium">Prendre une photo ou choisir un fichier</span>
+                  <span className="text-sm text-stone-500 font-medium">{t('lang') === 'fr' ? 'Prendre une photo ou choisir un fichier' : t('lang') === 'en' ? 'Take a photo or choose a file' : 'التقط صورة أو اختر ملف'}</span>
                 </>
               )}
               <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />

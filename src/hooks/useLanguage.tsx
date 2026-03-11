@@ -111,6 +111,9 @@ export const translations = {
     sawCount: (count: number) => `${count} l'ont vu${count > 1 ? 's' : ''}`,
     ownerNotified: 'propriétaire prévenu',
     positionNotSpecified: 'Position non spécifiée',
+    dog: '🐶 Chien',
+    cat: '🐱 Chat',
+    species: 'Espèce',
     // Languages
     french: 'FR',
     english: 'EN',
@@ -190,6 +193,9 @@ export const translations = {
     sawCount: (count: number) => `${count} saw it`,
     ownerNotified: 'owner notified',
     positionNotSpecified: 'Position not specified',
+    dog: '🐶 Dog',
+    cat: '🐱 Cat',
+    species: 'Species',
     // Languages
     french: 'FR',
     english: 'EN',
@@ -269,6 +275,9 @@ export const translations = {
     sawCount: (count: number) => `${count} شاهده`,
     ownerNotified: 'صاحب الحيوان تم إخطاره',
     positionNotSpecified: 'لم يتم تحديد الموقع',
+    dog: '🐶 كلب',
+    cat: '🐱 قطة',
+    species: 'النوع',
     // Languages
     french: 'FR',
     english: 'EN',
