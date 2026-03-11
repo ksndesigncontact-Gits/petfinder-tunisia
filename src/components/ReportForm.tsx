@@ -118,7 +118,9 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
     const newErrors: Record<string, string> = {};
     const hasPhoto = form.image != null;
-    const hasContact = form.contact.replace(/\D/g, '').length === 8;
+    // Extract only the local 8 digits (skip +216 prefix)
+    const localDigits = form.contact.replace(/\D/g, '').slice(3); // Remove 216 (3 digits)
+    const hasContact = localDigits.length === 8;
 
     // Require either a photo OR a valid contact number
     if (!hasPhoto && !hasContact) {
