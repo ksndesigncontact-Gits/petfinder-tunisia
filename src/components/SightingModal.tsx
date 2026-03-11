@@ -75,7 +75,9 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
     }
 
     // Validate: REQUIRED: contact AND position
-    const hasContact = contact.replace(/\D/g, '').length === 8;
+    // Extract only the local 8 digits (skip +216 prefix)
+    const localDigits = contact.replace(/\D/g, '').slice(3); // Remove 216 (3 digits)
+    const hasContact = localDigits.length === 8;
     const hasPosition = lat != null && lng != null;
 
     if (!hasContact) {
