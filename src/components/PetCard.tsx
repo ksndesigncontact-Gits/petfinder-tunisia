@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn, isValidTunisianPhone } from '../lib/utils';
+import { useT } from '../hooks/useLanguage';
 import type { Pet } from '../types';
 
 interface PetCardProps {
@@ -19,6 +20,7 @@ interface PetCardProps {
 export default function PetCard({
   pet, isAdmin, userLocation, onShare, onDelete, onSighting, distanceKm
 }: PetCardProps) {
+  const t = useT();
   const [imgError, setImgError] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | string | null>(null);
 
@@ -65,7 +67,7 @@ export default function PetCard({
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-red-500 text-white">
-            Perdu
+            {t('lost')}
           </span>
           {pet.contact && isValidTunisianPhone(pet.contact) && (
             <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-500 text-white">
@@ -135,10 +137,10 @@ export default function PetCard({
 
         <button
           onClick={() => onSighting(pet)}
-          className="flex items-center gap-2 text-xs text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+          className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-700 font-bold transition-colors cursor-pointer underline"
         >
           <MapPin size={12} />
-          <span className="truncate">{pet.location || 'Position non spécifiée'}</span>
+          <span className="truncate">{pet.location || t('positionNotSpecified')}</span>
         </button>
 
         <div className="flex items-center justify-between text-[10px] text-stone-400">
@@ -155,14 +157,14 @@ export default function PetCard({
               href={`tel:${pet.contact}`}
               className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-bold shadow-md shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95"
             >
-              <Phone size={16} /> Appeler
+              <Phone size={16} /> {t('call')}
             </a>
           )}
           <button
             onClick={() => onSighting(pet)}
             className="flex-1 flex items-center justify-center gap-2 py-3 bg-amber-500 text-white rounded-2xl text-sm font-bold shadow-md shadow-amber-200 hover:bg-amber-600 transition-all active:scale-95"
           >
-            <Eye size={16} /> Je l'ai vu !
+            <Eye size={16} /> {t('iSawIt')}
           </button>
           <button
             onClick={() => onShare(pet)}

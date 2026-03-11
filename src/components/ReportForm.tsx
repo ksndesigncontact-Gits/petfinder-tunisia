@@ -264,7 +264,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
               ) : (
                 <>
                   <Camera size={32} className="text-stone-400" />
-                  <span className="text-sm text-stone-500 font-medium">{t('lang') === 'fr' ? 'Prendre une photo ou choisir un fichier' : t('lang') === 'en' ? 'Take a photo or choose a file' : 'التقط صورة أو اختر ملف'}</span>
+                  <span className="text-sm text-stone-500 font-medium">{t('takePhoto')}</span>
                 </>
               )}
               <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
@@ -273,12 +273,12 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
           {/* Name */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Nom de l'animal</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('animalNameLabel')}</label>
             <input
               type="text"
               value={form.name}
               onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Ex: Mimi, Rex, Inconnu..."
+              placeholder={t('nameExample')}
               className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
             />
           </div>
@@ -286,22 +286,22 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
           {/* Breed & Color (auto-filled by AI) */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Race</label>
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('breed')}</label>
               <input
                 type="text"
                 value={form.breed}
                 onChange={e => setForm(prev => ({ ...prev, breed: e.target.value }))}
-                placeholder="Ex: Berger Allemand"
+                placeholder={t('breedExample')}
                 className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
               />
             </div>
             <div>
-              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Couleur</label>
+              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('color')}</label>
               <input
                 type="text"
                 value={form.color}
                 onChange={e => setForm(prev => ({ ...prev, color: e.target.value }))}
-                placeholder="Ex: Noir et blanc"
+                placeholder={t('colorExample')}
                 className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
               />
             </div>
@@ -309,12 +309,12 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
           {/* Description */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Description</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('description')}</label>
             <textarea
               name="description"
               value={form.description}
               onChange={e => setForm(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Décrivez l'animal: taille, signes distinctifs, comportement..."
+              placeholder={t('describeAnimal')}
               rows={3}
               className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none resize-none"
             />
@@ -325,13 +325,13 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
           {/* Location */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Localisation</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('location')}</label>
             <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={form.location}
                 onChange={e => handleLocationText(e.target.value)}
-                placeholder="Adresse ou collez un lien Google Maps"
+                placeholder={t('addressOrMaps')}
                 className="flex-1 bg-stone-100 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
               />
               <button type="button" onClick={useCurrentLocation}
@@ -367,14 +367,14 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
             </div>
             {form.lat != null && (
               <p className="text-[10px] text-emerald-600 font-bold mt-2 flex items-center gap-1">
-                <MapPin size={10} /> Position sélectionnée: {form.lat.toFixed(4)}, {form.lng?.toFixed(4)}
+                <MapPin size={10} /> {t('selectedPosLabel')} {form.lat.toFixed(4)}, {form.lng?.toFixed(4)}
               </p>
             )}
           </div>
 
           {/* Contact */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Numéro de contact (8 chiffres)</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">{t('contactLabel')}</label>
             <div className="flex gap-2">
               <div className="bg-stone-200 rounded-2xl px-4 py-4 text-sm font-bold text-stone-600 flex items-center">
                 +216
@@ -404,11 +404,11 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
             className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
-              <><Loader2 className="animate-spin" size={20} /> Publication en cours...</>
+              <><Loader2 className="animate-spin" size={20} /> {t('publishing')}</>
             ) : isAnalyzing ? (
-              <><Loader2 className="animate-spin" size={20} /> Analyse IA en cours...</>
+              <><Loader2 className="animate-spin" size={20} /> {t('analyzing')}</>
             ) : (
-              <><PawPrint size={20} /> Publier le signalement</>
+              <><PawPrint size={20} /> {t('publishBtn')}</>
             )}
           </button>
         </form>

@@ -151,9 +151,7 @@ export default function App() {
   const handleSightingSubmit = async (formData: FormData) => {
     if (!selectedPetForSighting) return;
     try {
-      // Add location and user_id
-      formData.append('lat', geo.location?.[0]?.toString() || '');
-      formData.append('lng', geo.location?.[1]?.toString() || '');
+      // Add user_id (lat/lng come from SightingModal click position)
       if (user) formData.append('user_id', user.id);
 
       const res = await fetch(`/api/pets/${selectedPetForSighting.id}/sightings`, {
