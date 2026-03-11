@@ -118,12 +118,12 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
     const newErrors: Record<string, string> = {};
     const hasPhoto = form.image != null;
-    const hasContact = form.contact.length >= 12 && form.contact !== '+216 ';
+    const hasContact = form.contact.replace(/\D/g, '').length === 8;
 
     if (!hasPhoto && !hasContact) {
-      newErrors.contact = "Joignez une photo OU un numéro de contact.";
+      newErrors.contact = "Joignez une photo OU un numéro tunisien (8 chiffres).";
     } else if (!hasContact) {
-      newErrors.contact = "Numéro obligatoire. Ex: +216 22 123 456";
+      newErrors.contact = "Numéro tunisien invalide (8 chiffres). Ex: +216 22 123 456";
     }
     if (form.description.length < 10) {
       newErrors.description = "Description trop courte (min 10 caractères).";
@@ -370,15 +370,24 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
           {/* Contact */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Numéro de contact</label>
-            <input
-              type="tel"
-              name="contact"
-              value={form.contact}
-              onChange={e => setForm(prev => ({ ...prev, contact: e.target.value }))}
-              placeholder="+216 22 123 456"
-              className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
-            />
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Numéro de contact (8 chiffres)</label>
+            <div className="flex gap-2">
+              <div className="bg-stone-200 rounded-2xl px-4 py-4 text-sm font-bold text-stone-600 flex items-center">
+                +216
+              </div>
+              <input
+                type="tel"
+                name="contact"
+                value={form.contact.replace('+216 ', '')}
+                onChange={e => {
+                  const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                  setForm(prev => ({ ...prev, contact: `+216 ${val}` }));
+                }}
+                placeholder="22 123 456"
+                maxLength="8"
+                className="flex-1 bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
+              />
+            </div>
             {errors.contact && (
               <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} /> {errors.contact}</p>
             )}

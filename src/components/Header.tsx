@@ -57,6 +57,7 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
           title={user ? 'Gérer le compte' : 'Se connecter'}
         >
           <LogIn size={18} className="text-emerald-600" />
+          <span className="text-sm font-bold">LOG IN</span>
         </button>
         <button
           onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}

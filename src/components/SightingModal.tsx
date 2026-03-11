@@ -1,8 +1,28 @@
-import React, { useState } from 'react';
-import { X, Camera, Loader2, AlertCircle, Eye } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Camera, Loader2, AlertCircle, Eye, MapPin } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
 import imageCompression from 'browser-image-compression';
 import type { Pet } from '../types';
+
+// Fix Leaflet icons
+// @ts-ignore
+import icon from 'leaflet/dist/images/marker-icon.png';
+// @ts-ignore
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+L.Marker.prototype.options.icon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
+
+function LocationPicker({ onSelect, initialPos }: { onSelect: (lat: number, lng: number) => void; initialPos?: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (initialPos) map.setView(initialPos, 13);
+  }, [initialPos, map]);
+  useMapEvents({
+    click(e) { onSelect(e.latlng.lat, e.latlng.lng); },
+  });
+  return null;
+}
 
 interface SightingModalProps {
   isOpen: boolean;
@@ -17,6 +37,8 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
   const [message, setMessage] = useState('');
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState('');
+  const [lat, setLat] = useState<number | null>(userLocation?.[0] || null);
+  const [lng, setLng] = useState<number | null>(userLocation?.[1] || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -52,14 +74,24 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
       return;
     }
 
+    // Validate: at least 1 of (contact OR image OR position)
+    const hasContact = contact.replace(/\D/g, '').length === 8;
+    const hasImage = image != null;
+    const hasPosition = lat != null && lng != null;
+
+    if (!hasContact && !hasImage && !hasPosition) {
+      setError('Au moins 1 requis: numéro tunisien (8 chiffres) OU photo OU position sur la carte.');
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const formData = new FormData();
       formData.append('contact_phone', contact || '');
       formData.append('message', message);
-      formData.append('lat', userLocation?.[0]?.toString() || '');
-      formData.append('lng', userLocation?.[1]?.toString() || '');
-      formData.append('location', userLocation ? `${userLocation[0]}, ${userLocation[1]}` : '');
+      formData.append('lat', lat?.toString() || '');
+      formData.append('lng', lng?.toString() || '');
+      formData.append('location', lat && lng ? `${lat}, ${lng}` : '');
       if (image) formData.append('image', image);
 
       await onSubmit(formData);
@@ -141,23 +173,64 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
                   value={message}
                   onChange={e => setMessage(e.target.value)}
                   placeholder="Ex: Vu près du parc, vers 14h, semblait avoir faim..."
-                  rows={4}
+                  rows={3}
                   className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-amber-500 border-none resize-none"
                 />
+              </div>
+
+              {/* Position on map */}
+              <div>
+                <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
+                  Position du sighting <span className="text-stone-400 normal-case">(optionnel - clique sur la carte)</span>
+                </label>
+                <div className="h-48 rounded-2xl overflow-hidden border border-stone-200">
+                  <MapContainer
+                    center={[lat || userLocation?.[0] || 36.8065, lng || userLocation?.[1] || 10.1815]}
+                    zoom={13}
+                    style={{ height: '100%', width: '100%' }}
+                    zoomControl={false}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <LocationPicker
+                      onSelect={(newLat, newLng) => {
+                        setLat(newLat);
+                        setLng(newLng);
+                      }}
+                      initialPos={[lat || userLocation?.[0] || 36.8065, lng || userLocation?.[1] || 10.1815]}
+                    />
+                    {lat != null && lng != null && (
+                      <Marker position={[lat, lng]} />
+                    )}
+                  </MapContainer>
+                </div>
+                {lat != null && lng != null && (
+                  <p className="text-[10px] text-amber-600 font-bold mt-2 flex items-center gap-1">
+                    <MapPin size={10} /> Position: {lat.toFixed(4)}, {lng.toFixed(4)}
+                  </p>
+                )}
               </div>
 
               {/* Contact */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Numéro de contact <span className="text-stone-400 normal-case">(optionnel)</span>
+                  Numéro de contact (8 chiffres) <span className="text-stone-400 normal-case">(optionnel)</span>
                 </label>
-                <input
-                  type="tel"
-                  value={contact}
-                  onChange={e => setContact(e.target.value)}
-                  placeholder="+216 22 123 456"
-                  className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-amber-500 border-none"
-                />
+                <div className="flex gap-2">
+                  <div className="bg-stone-200 rounded-2xl px-4 py-4 text-sm font-bold text-stone-600 flex items-center">
+                    +216
+                  </div>
+                  <input
+                    type="tel"
+                    value={contact.replace('+216 ', '')}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setContact(`+216 ${val}`);
+                    }}
+                    placeholder="22 123 456"
+                    maxLength="8"
+                    className="flex-1 bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-amber-500 border-none"
+                  />
+                </div>
               </div>
 
               {/* Error */}

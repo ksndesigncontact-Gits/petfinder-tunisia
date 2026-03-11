@@ -43,7 +43,7 @@ export function useGeolocation() {
     if (state.status === 'prompt') {
       requestLocation();
     }
-  }, []);
+  }, [state.status, requestLocation]);
 
   return { ...state, requestLocation };
 }
