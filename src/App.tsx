@@ -219,7 +219,7 @@ export default function App() {
       >
         <div className="flex items-center gap-2 text-emerald-600 font-bold text-[10px] uppercase tracking-widest">
           <RefreshCw size={14} className={cn(isRefreshing && 'animate-spin', pullDistance > 50 && !isRefreshing && 'rotate-180 transition-transform')} />
-          {isRefreshing ? 'Actualisation...' : pullDistance > 50 ? 'Relâchez' : 'Tirez pour actualiser'}
+          {isRefreshing ? t('refreshing') : pullDistance > 50 ? t('release') : t('pullToRefresh')}
         </div>
       </motion.div>
 

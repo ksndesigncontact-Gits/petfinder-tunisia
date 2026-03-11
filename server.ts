@@ -400,7 +400,7 @@ async function startServer() {
 
       // Create notification for pet owner
       if (sighting?.[0]) {
-        await supabase
+        const { error } = await supabase
           .from("notifications")
           .insert([{
             pet_id: petId,
@@ -411,8 +411,8 @@ async function startServer() {
             lat: lat || null,
             lng: lng || null,
             is_read: false,
-          }])
-          .catch(err => console.warn("[NOTIFICATION] Insert error:", err));
+          }]);
+        if (error) console.warn("[NOTIFICATION] Insert error:", error);
       }
 
       res.json({ success: true, sighting: sighting?.[0] });

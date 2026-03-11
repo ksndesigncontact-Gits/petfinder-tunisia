@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useT } from '../hooks/useLanguage';
 
 interface AdminModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface AdminModalProps {
 }
 
 export default function AdminModal({ isOpen, onClose, onLogin }: AdminModalProps) {
+  const t = useT();
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
 
@@ -43,14 +45,14 @@ export default function AdminModal({ isOpen, onClose, onLogin }: AdminModalProps
             <div className="w-16 h-16 bg-stone-100 rounded-3xl flex items-center justify-center mb-4 text-stone-400">
               <Lock size={32} />
             </div>
-            <h2 className="text-2xl font-display font-bold text-stone-800">Accès Admin</h2>
-            <p className="text-sm text-stone-500 mt-1">Entrez le mot de passe pour gérer les annonces</p>
+            <h2 className="text-2xl font-display font-bold text-stone-800">{t('adminAccess')}</h2>
+            <p className="text-sm text-stone-500 mt-1">{t('adminPassword')}</p>
           </div>
 
           <div className="space-y-4">
             <input
               type="password"
-              placeholder="Mot de passe"
+              placeholder={t('passwordLabel')}
               value={password}
               onChange={e => setPassword(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleLogin()}
@@ -59,20 +61,20 @@ export default function AdminModal({ isOpen, onClose, onLogin }: AdminModalProps
               }`}
             />
             {error && (
-              <p className="text-xs text-red-500 text-center font-bold">Mot de passe incorrect</p>
+              <p className="text-xs text-red-500 text-center font-bold">{t('incorrectPassword')}</p>
             )}
             <div className="flex gap-3">
               <button
                 onClick={onClose}
                 className="flex-1 py-4 rounded-2xl font-bold text-stone-500 hover:bg-stone-50 transition-colors"
               >
-                Annuler
+                {t('cancel')}
               </button>
               <button
                 onClick={handleLogin}
                 className="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-bold hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-200"
               >
-                Connexion
+                {t('login')}
               </button>
             </div>
           </div>

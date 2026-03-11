@@ -73,7 +73,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
     setError('');
 
     if (!message.trim()) {
-      setError('Décrivez brièvement ce que vous avez vu.');
+      setError(t('describeNeeded'));
       return;
     }
 
@@ -84,12 +84,12 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
     const hasPosition = lat != null && lng != null;
 
     if (!hasContact) {
-      setError('Numéro tunisien obligatoire (8 chiffres).');
+      setError(t('tunisianNumberRequired'));
       return;
     }
 
     if (!hasPosition) {
-      setError('Position sur la carte obligatoire. Clique sur la carte.');
+      setError(t('positionRequired'));
       return;
     }
 
@@ -144,7 +144,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               {/* Pet info */}
               <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl">
-                <p className="text-sm text-stone-600">Animal :</p>
+                <p className="text-sm text-stone-600">{t('animal')}</p>
                 <p className="font-bold text-amber-700">
                   {pet.breed || pet.species} · {pet.color}
                 </p>

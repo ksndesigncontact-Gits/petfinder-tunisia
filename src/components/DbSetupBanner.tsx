@@ -1,5 +1,6 @@
 import React from 'react';
 import { AlertCircle, Copy } from 'lucide-react';
+import { useT } from '../hooks/useLanguage';
 import type { DbStatus } from '../types';
 
 interface DbSetupBannerProps {
@@ -40,6 +41,8 @@ CREATE POLICY "Authenticated insert" ON pets FOR INSERT WITH CHECK (true);
 `;
 
 export default function DbSetupBanner({ dbStatus, onRecheck }: DbSetupBannerProps) {
+  const t = useT();
+
   if (dbStatus.petsTable && dbStatus.missingColumns.length === 0) {
     return null;
   }
@@ -47,22 +50,22 @@ export default function DbSetupBanner({ dbStatus, onRecheck }: DbSetupBannerProp
   return (
     <div className="bg-red-50 border-b border-red-100 px-6 py-4 space-y-3">
       <div className="flex items-center gap-2 text-red-700 font-bold text-sm">
-        <AlertCircle size={18} /> Configuration Supabase requise
+        <AlertCircle size={18} /> {t('supabaseRequired')}
       </div>
       <p className="text-xs text-red-600 leading-relaxed">
-        Certaines tables manquent. Copiez et exécutez ce SQL dans le <b>SQL Editor de Supabase</b> :
+        {t('missingTables')} <b>SQL Editor de Supabase</b> :
       </p>
       <div className="bg-stone-900 text-stone-300 p-3 rounded-xl font-mono text-[10px] overflow-x-auto relative group max-h-48 overflow-y-auto">
         <pre className="whitespace-pre-wrap">{SQL}</pre>
         <button
-          onClick={() => { navigator.clipboard.writeText(SQL); alert('SQL copié !'); }}
+          onClick={() => { navigator.clipboard.writeText(SQL); alert(t('sqlCopied')); }}
           className="absolute top-2 right-2 bg-white/10 hover:bg-white/20 p-2 rounded-lg transition-colors"
         >
           <Copy size={14} />
         </button>
       </div>
       <button onClick={onRecheck} className="text-[10px] font-bold text-red-700 underline hover:no-underline">
-        Vérifier à nouveau
+        {t('recheck')}
       </button>
     </div>
   );

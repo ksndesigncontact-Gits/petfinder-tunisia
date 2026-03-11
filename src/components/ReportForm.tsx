@@ -67,7 +67,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
       try {
         const analysis = await analyzePetImage(base64);
         if (!analysis.isPet) {
-          alert(t('aiWillAnalyze').includes('automatiquement') ? "L'IA a détecté que cette image n'est pas un animal domestique. Veuillez utiliser une vraie photo." : "AI detected this image is not a domestic animal. Please use a real photo.");
+          alert(t('notPetImage'));
           setForm(prev => ({ ...prev, image: null, imagePreview: '' }));
           return;
         }
@@ -79,7 +79,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
           description: analysis.description,
         }));
       } catch (err) {
-        console.error('Analyse IA échouée:', err);
+        console.error(t('aiAnalysisFailed'), err);
       } finally {
         setIsAnalyzing(false);
       }
@@ -89,7 +89,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
   const useCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("La géolocalisation n'est pas supportée.");
+      alert(t('noGeolocation'));
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -102,7 +102,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
         }));
       },
       () => {
-        alert("Impossible de récupérer la position. Indiquez-la manuellement.");
+        alert(t('locationError'));
       }
     );
   };
@@ -127,7 +127,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
 
     // Require either a photo OR a valid contact number
     if (!hasPhoto && !hasContact) {
-      newErrors.contact = "Joignez une photo OU un numéro tunisien (8 chiffres).";
+      newErrors.contact = t('photoOrContact');
     }
     if (form.description.length < 10) {
       newErrors.description = "Description trop courte (min 10 caractères).";
@@ -139,7 +139,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     setErrors({});
 
     if (form.lat == null || form.lng == null) {
-      if (!confirm("Pas de position sur la carte. L'annonce sera visible en liste mais pas sur la carte. Continuer ?")) return;
+      if (!confirm(t('noPositionWarning'))) return;
     }
 
     let fileToUpload = form.image;

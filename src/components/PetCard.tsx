@@ -71,7 +71,7 @@ export default function PetCard({
           </span>
           {pet.contact && isValidTunisianPhone(pet.contact) && (
             <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-500 text-white">
-              <CheckCircle size={10} /> Vérifié
+              <CheckCircle size={10} /> {t('verified')}
             </span>
           )}
         </div>
@@ -97,7 +97,7 @@ export default function PetCard({
             <Trash2 size={18} />
             {confirmDeleteId === pet.id && (
               <span className="absolute -top-8 right-0 bg-red-600 text-white text-[10px] px-2 py-1 rounded-lg whitespace-nowrap">
-                Cliquez encore pour confirmer
+                {t('confirmDeleteAgain')}
               </span>
             )}
           </button>
@@ -120,12 +120,12 @@ export default function PetCard({
           <div className="flex flex-col items-end gap-1">
             {pet.pet_status === 'en_ma_possession' && (
               <span className="px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[10px] font-bold">
-                En sécurité
+                {t('safe')}
               </span>
             )}
             {pet.pet_status === 'toujours_errant' && (
               <span className="px-2 py-0.5 bg-orange-100 text-orange-700 rounded-full text-[10px] font-bold">
-                Toujours errant
+                {t('stillStray')}
               </span>
             )}
           </div>

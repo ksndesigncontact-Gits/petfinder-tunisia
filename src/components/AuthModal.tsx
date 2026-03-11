@@ -26,7 +26,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       await signInWithGoogle();
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Erreur de connexion');
+      setError(err.message || t('loginError'));
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +114,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <div className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
                   <p className="text-sm text-stone-600">{t('connectedAs')}</p>
-                  <p className="font-bold text-emerald-700">{user.email || 'Utilisateur'}</p>
+                  <p className="font-bold text-emerald-700">{user.email || t('user')}</p>
                 </div>
                 <button
                   onClick={handleSignOut}

@@ -37,7 +37,7 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
           </h1>
           {isAdmin && (
             <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest mt-1 flex items-center gap-1">
-              <ShieldCheck size={10} /> Mode Admin
+              <ShieldCheck size={10} /> {t('adminMode')}
             </span>
           )}
         </div>
@@ -56,7 +56,7 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
             <button
               onClick={() => setIsAdmin(false)}
               className="p-2 text-red-600 bg-red-50 rounded-xl hover:bg-red-100 transition-colors"
-              title="Quitter le mode Admin"
+              title={t('exitAdminMode')}
             >
               <X size={18} />
             </button>
@@ -88,12 +88,12 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
           {viewMode === 'list' ? (
             <>
               <MapIcon size={18} className="text-emerald-600" />
-              <span className="text-sm font-bold">Carte</span>
+              <span className="text-sm font-bold">{t('map')}</span>
             </>
           ) : (
             <>
               <LayoutGrid size={18} className="text-emerald-600" />
-              <span className="text-sm font-bold">Liste</span>
+              <span className="text-sm font-bold">{t('list')}</span>
             </>
           )}
         </button>
