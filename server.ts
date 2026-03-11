@@ -142,7 +142,7 @@ const upload = multer({
  * Upload image to Supabase Storage (production)
  * Requires a 'pet-images' bucket in Supabase (public access)
  */
-async function uploadToSupabaseStorage(file: Express.Multer.File): Promise<string> {
+async function uploadToSupabaseStorage(file: any): Promise<string> {
   const supabase = getSupabase();
   const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
   
@@ -171,18 +171,15 @@ async function startServer() {
   app.use("/uploads", express.static("uploads"));
 
   // ---- DB Status ----
-  let dbStatus = { petsTable: false, matchesTable: false, missingColumns: [] as string[], error: null as string | null };
+  let dbStatus = { petsTable: false, missingColumns: [] as string[], error: null as string | null };
 
   const checkTables = async () => {
-    dbStatus = { petsTable: false, matchesTable: false, missingColumns: [], error: null };
+    dbStatus = { petsTable: false, missingColumns: [], error: null };
     try {
       const supabase = getSupabase();
       const { error: pe } = await supabase.from("pets").select("id").limit(1);
       dbStatus.petsTable = !pe;
       if (pe) dbStatus.error = pe.message;
-
-      const { error: me } = await supabase.from("matches").select("id").limit(1);
-      dbStatus.matchesTable = !me;
 
       // Check columns
       for (const col of ["name", "pet_status"]) {
@@ -285,12 +282,14 @@ async function startServer() {
       const { type, species, breed, color, description, location, contact, lat, lng, name, pet_status } = req.body;
 
       const insertData: any = {
-        type, species, breed, color, description, location, contact,
+        type: 'lost', species, breed, color, description, location, contact,
         lat: lat ? parseFloat(lat) : null,
         lng: lng ? parseFloat(lng) : null,
         image_url: null as string | null,
         name: name || "Inconnu",
         pet_status: pet_status || "toujours_errant",
+        sighting_count: 0,
+        owner_notified: false,
       };
 
       // Handle image upload
@@ -324,7 +323,6 @@ async function startServer() {
       if (error) return res.status(500).json({ error: error.message });
 
       const newPet = data![0];
-      processMatching(newPet).catch(err => console.error("Matching error:", err));
       res.json({ id: newPet.id, success: true });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
@@ -348,68 +346,69 @@ async function startServer() {
     }
   });
 
-  // GET /api/matches
-  app.get("/api/matches", async (_req, res) => {
+  // POST /api/pets/:id/sightings
+  app.post("/api/pets/:id/sightings", upload.single("image"), async (req: any, res) => {
     try {
-      const { data, error } = await getSupabase()
-        .from("matches")
-        .select("*, lost_report:lost_report_id(*), found_report:found_report_id(*)")
-        .order("created_at", { ascending: false });
-      if (error) {
-        if (error.message.includes("not found")) return res.json([]);
-        return res.status(500).json({ error: error.message });
+      const { id } = req.params;
+      const { contact_phone, lat, lng, location, message, user_id } = req.body;
+      const petId = parseInt(id);
+
+      let photoUrl = null;
+      if (req.file) {
+        if (IS_PROD && req.file.buffer) {
+          try {
+            photoUrl = await uploadToSupabaseStorage(req.file);
+          } catch (err: any) {
+            console.warn("[UPLOAD] Photo upload failed:", err.message);
+          }
+        } else {
+          photoUrl = `/uploads/${req.file.filename}`;
+        }
       }
-      res.json(data || []);
-    } catch (err: any) {
-      res.status(500).json({ error: err.message });
-    }
-  });
 
-  // POST /api/matches/preview
-  app.post("/api/matches/preview", async (req, res) => {
-    const { type, species, lat, lng, breed, color } = req.body;
-    if (lat == null || lng == null) return res.json([]);
-
-    try {
       const supabase = getSupabase();
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const { data: candidates } = await supabase.from("pets").select("*")
-        .eq("species", species).neq("type", type)
-        .gt("created_at", thirtyDaysAgo.toISOString());
+      // Insert sighting
+      const { data: sighting, error: sightingError } = await supabase
+        .from("sightings")
+        .insert([{
+          pet_id: petId,
+          contact_phone: contact_phone || null,
+          lat: lat || null,
+          lng: lng || null,
+          location: location || null,
+          photo_url: photoUrl,
+          message: message || null,
+          user_id: user_id || null,
+        }])
+        .select();
 
-      if (!candidates?.length) return res.json([]);
+      if (sightingError) return res.status(500).json({ error: sightingError.message });
 
-      const matches = candidates
-        .map(c => {
-          const r = computeScore({ species, lat, lng, breed, color }, c);
-          return r && r.score >= PREVIEW_THRESHOLD
-            ? { ...c, distance_km: r.distance, match_score: r.score }
-            : null;
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => b.match_score - a.match_score)
-        .slice(0, 5);
+      // Increment sighting count
+      const { data: pet, error: petError } = await supabase
+        .from("pets")
+        .select("sighting_count")
+        .eq("id", petId)
+        .single();
 
-      res.json(matches);
-    } catch {
-      res.json([]);
-    }
-  });
+      if (!petError && pet) {
+        await supabase
+          .from("pets")
+          .update({ sighting_count: (pet.sighting_count || 0) + 1 })
+          .eq("id", petId);
+      }
 
-  // POST /api/matches/recheck
-  app.post("/api/matches/recheck", async (_req, res) => {
-    try {
-      const { data: pets } = await getSupabase().from("pets").select("*");
-      for (const pet of pets || []) await processMatching(pet);
-      res.json({ success: true });
+      res.json({ success: true, sighting: sighting?.[0] });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   });
 
-  // POST /api/matches/:id/status
+  // DEPRECATED ENDPOINTS — kept for compatibility
+  app.get("/api/matches", async (_req, res) => res.json([]));
+  app.post("/api/matches/preview", async (_req, res) => res.json([]));
+  app.post("/api/matches/recheck", async (_req, res) => res.json({ success: true }));
   app.post("/api/matches/:id/status", async (req, res) => {
     const { status } = req.body;
     try {

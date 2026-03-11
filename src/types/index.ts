@@ -1,6 +1,6 @@
 export interface Pet {
   id: number;
-  type: 'lost' | 'found';
+  type: 'lost';
   species: 'dog' | 'cat';
   name: string;
   pet_status: 'en_ma_possession' | 'toujours_errant';
@@ -13,22 +13,21 @@ export interface Pet {
   contact: string;
   image_url: string;
   created_at: string;
+  sighting_count: number;
+  owner_notified: boolean;
 }
 
-export interface Match {
+export interface Sighting {
   id: number;
-  lost_report_id: number;
-  found_report_id: number;
-  match_score: number;
-  distance_km: number;
-  status: 'pending' | 'confirmed' | 'rejected';
+  pet_id: number;
+  user_id?: string;
+  contact: string;
+  lat: number | null;
+  lng: number | null;
   created_at: string;
-  lost_report: Pet;
-  found_report: Pet;
 }
 
 export interface ReportForm {
-  type: 'lost' | 'found';
   species: 'dog' | 'cat';
   name: string;
   pet_status: 'en_ma_possession' | 'toujours_errant';
@@ -39,20 +38,17 @@ export interface ReportForm {
   lat: number | null;
   lng: number | null;
   contact: string;
-  isAnonymous: boolean;
   image: File | null;
   imagePreview: string;
 }
 
 export interface DbStatus {
   petsTable: boolean;
-  matchesTable: boolean;
   missingColumns: string[];
   error: string | null;
 }
 
 export const INITIAL_FORM: ReportForm = {
-  type: 'lost',
   species: 'dog',
   name: 'Inconnu',
   pet_status: 'toujours_errant',
@@ -63,7 +59,6 @@ export const INITIAL_FORM: ReportForm = {
   lat: null,
   lng: null,
   contact: '+216 ',
-  isAnonymous: false,
   image: null,
   imagePreview: ''
 };

@@ -27,7 +27,6 @@ interface ReportFormModalProps {
 
 export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocation }: ReportFormModalProps) {
   const [form, setForm] = useState<ReportForm>({
-    type: 'lost',
     species: 'dog',
     name: 'Inconnu',
     pet_status: 'toujours_errant',
@@ -38,7 +37,6 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     lat: null,
     lng: null,
     contact: '+216 ',
-    isAnonymous: false,
     image: null,
     imagePreview: '',
   });
@@ -46,42 +44,12 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [preMatches, setPreMatches] = useState<any[]>([]);
 
   // Lock body scroll
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : 'unset';
     return () => { document.body.style.overflow = 'unset'; };
   }, [isOpen]);
-
-  // Fetch preview matches when location changes
-  useEffect(() => {
-    if (!isOpen || form.lat == null || form.lng == null) {
-      setPreMatches([]);
-      return;
-    }
-    const timer = setTimeout(async () => {
-      try {
-        const res = await fetch('/api/matches/preview', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            type: form.type,
-            species: form.species,
-            lat: form.lat,
-            lng: form.lng,
-            breed: form.breed,
-            color: form.color,
-          }),
-        });
-        const data = await res.json();
-        setPreMatches(Array.isArray(data) ? data : []);
-      } catch {
-        setPreMatches([]);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [isOpen, form.type, form.species, form.lat, form.lng, form.breed, form.color]);
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -149,8 +117,13 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     if (isSubmitting || isAnalyzing) return;
 
     const newErrors: Record<string, string> = {};
-    if (!form.isAnonymous && (form.contact.length < 12 || form.contact === '+216 ')) {
-      newErrors.contact = "Numéro invalide. Ex: +216 22 123 456, ou cochez 'Anonyme'.";
+    const hasPhoto = form.image != null;
+    const hasContact = form.contact.length >= 12 && form.contact !== '+216 ';
+
+    if (!hasPhoto && !hasContact) {
+      newErrors.contact = "Joignez une photo OU un numéro de contact.";
+    } else if (!hasContact) {
+      newErrors.contact = "Numéro obligatoire. Ex: +216 22 123 456";
     }
     if (form.description.length < 10) {
       newErrors.description = "Description trop courte (min 10 caractères).";
@@ -173,7 +146,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     }
 
     const formData = new FormData();
-    formData.append('type', form.type);
+    formData.append('type', 'lost');
     formData.append('species', form.species);
     formData.append('name', form.name);
     formData.append('pet_status', form.pet_status);
@@ -181,7 +154,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     formData.append('color', form.color);
     formData.append('description', form.description);
     formData.append('location', form.location);
-    formData.append('contact', form.isAnonymous ? 'Anonyme' : form.contact);
+    formData.append('contact', form.contact);
     formData.append('website', honeypot);
     if (form.lat != null) formData.append('lat', form.lat.toString());
     if (form.lng != null) formData.append('lng', form.lng.toString());
@@ -192,9 +165,9 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
       await onSubmit(formData);
       // Reset form
       setForm({
-        type: 'lost', species: 'dog', name: 'Inconnu', pet_status: 'toujours_errant',
+        species: 'dog', name: 'Inconnu', pet_status: 'toujours_errant',
         breed: '', color: '', description: '', location: '', lat: null, lng: null,
-        contact: '+216 ', isAnonymous: false, image: null, imagePreview: '',
+        contact: '+216 ', image: null, imagePreview: '',
       });
       setHoneypot('');
       onClose();
@@ -238,24 +211,9 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
           <input type="text" name="website" value={honeypot} onChange={e => setHoneypot(e.target.value)}
             className="absolute opacity-0 h-0 w-0" tabIndex={-1} autoComplete="off" />
 
-          {/* Type */}
-          <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Type de signalement</label>
-            <div className="grid grid-cols-2 gap-3">
-              {(['lost', 'found'] as const).map(t => (
-                <button key={t} type="button"
-                  onClick={() => setForm(prev => ({ ...prev, type: t }))}
-                  className={cn(
-                    "py-4 rounded-2xl font-bold text-sm transition-all border-2",
-                    form.type === t
-                      ? t === 'lost' ? "bg-red-50 border-red-400 text-red-700" : "bg-blue-50 border-blue-400 text-blue-700"
-                      : "bg-stone-50 border-stone-200 text-stone-400"
-                  )}
-                >
-                  {t === 'lost' ? '🚨 Animal Perdu' : '🔍 Animal Trouvé'}
-                </button>
-              ))}
-            </div>
+          <div className="bg-red-50 border border-red-200 p-4 rounded-2xl">
+            <p className="text-sm font-bold text-red-700">🚨 Signaler un animal perdu</p>
+            <p className="text-xs text-red-600 mt-1">Aidez-nous à retrouver cet animal !</p>
           </div>
 
           {/* Species */}
@@ -320,37 +278,6 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
               className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
             />
           </div>
-
-          {/* Status (for found type) */}
-          {form.type === 'found' && (
-            <div>
-              <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Situation de l'animal</label>
-              <div className="grid grid-cols-2 gap-3">
-                <button type="button"
-                  onClick={() => setForm(prev => ({ ...prev, pet_status: 'en_ma_possession' }))}
-                  className={cn(
-                    "py-3 rounded-2xl text-sm font-bold transition-all border-2",
-                    form.pet_status === 'en_ma_possession'
-                      ? "bg-green-50 border-green-400 text-green-700"
-                      : "bg-stone-50 border-stone-200 text-stone-400"
-                  )}
-                >
-                  🏠 En ma possession
-                </button>
-                <button type="button"
-                  onClick={() => setForm(prev => ({ ...prev, pet_status: 'toujours_errant' }))}
-                  className={cn(
-                    "py-3 rounded-2xl text-sm font-bold transition-all border-2",
-                    form.pet_status === 'toujours_errant'
-                      ? "bg-orange-50 border-orange-400 text-orange-700"
-                      : "bg-stone-50 border-stone-200 text-stone-400"
-                  )}
-                >
-                  🐾 Toujours errant
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Breed & Color (auto-filled by AI) */}
           <div className="grid grid-cols-2 gap-3">
@@ -441,58 +368,20 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
             )}
           </div>
 
-          {/* Preview matches */}
-          {preMatches.length > 0 && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-2">
-              <p className="text-xs font-bold text-emerald-800 flex items-center gap-1">
-                <AlertCircle size={14} /> {preMatches.length} animal(aux) similaire(s) déjà signalé(s) à proximité !
-              </p>
-              {preMatches.map((m: any) => (
-                <div key={m.id} className="flex items-center gap-3 bg-white rounded-xl p-2">
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 flex-shrink-0">
-                    {m.image_url ? (
-                      <img src={m.image_url} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center"><PawPrint size={14} className="text-stone-300" /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-stone-800 truncate">{m.breed || m.species} · {m.color}</p>
-                    <p className="text-[10px] text-stone-500">{m.distance_km?.toFixed(1)}km · Score: {m.match_score}</p>
-                  </div>
-                </div>
-              ))}
-              <p className="text-[10px] text-emerald-600">Vous pouvez quand même publier votre signalement.</p>
-            </div>
-          )}
-
           {/* Contact */}
           <div>
-            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Contact</label>
+            <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">Numéro de contact</label>
             <input
               type="tel"
               name="contact"
               value={form.contact}
               onChange={e => setForm(prev => ({ ...prev, contact: e.target.value }))}
               placeholder="+216 22 123 456"
-              disabled={form.isAnonymous}
-              className={cn(
-                "w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none",
-                form.isAnonymous && "opacity-50"
-              )}
+              className="w-full bg-stone-100 rounded-2xl px-4 py-4 text-sm focus:ring-2 focus:ring-emerald-500 border-none"
             />
             {errors.contact && (
               <p className="text-xs text-red-500 mt-1 flex items-center gap-1"><AlertCircle size={12} /> {errors.contact}</p>
             )}
-            <label className="flex items-center gap-2 mt-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.isAnonymous}
-                onChange={e => setForm(prev => ({ ...prev, isAnonymous: e.target.checked }))}
-                className="w-4 h-4 rounded text-emerald-600"
-              />
-              <span className="text-sm text-stone-600">Publier anonymement (position uniquement)</span>
-            </label>
           </div>
 
           {/* Submit */}

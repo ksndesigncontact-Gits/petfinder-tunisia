@@ -1,29 +1,26 @@
 import React, { useState } from 'react';
-import { PawPrint, MapPin, Phone, Share2, Heart, Trash2, AlertCircle, Sparkles } from 'lucide-react';
+import { PawPrint, MapPin, Phone, Share2, Eye, Trash2, AlertCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '../lib/utils';
-import type { Pet, Match } from '../types';
+import type { Pet } from '../types';
 
 interface PetCardProps {
   pet: Pet;
-  petMatch?: Match;
   isAdmin: boolean;
   userLocation: [number, number] | null;
   onShare: (pet: Pet) => void;
   onDelete: (id: number | string) => void;
-  onViewMatch: (match: Match) => void;
-  onConfirmMatch: (matchId: number) => void;
+  onSighting: (pet: Pet) => void;
   distanceKm?: number;
 }
 
 export default function PetCard({
-  pet, petMatch, isAdmin, userLocation, onShare, onDelete, onViewMatch, onConfirmMatch, distanceKm
+  pet, isAdmin, userLocation, onShare, onDelete, onSighting, distanceKm
 }: PetCardProps) {
   const [imgError, setImgError] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | string | null>(null);
-  const isResolved = petMatch?.status === 'confirmed';
 
   const handleDeleteClick = (id: number | string) => {
     if (confirmDeleteId !== id) {
@@ -48,10 +45,7 @@ export default function PetCard({
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className={cn(
-        "bg-white rounded-3xl overflow-hidden shadow-sm border transition-all group",
-        isResolved ? "border-emerald-200 bg-emerald-50/30" : "border-stone-200"
-      )}
+      className="bg-white rounded-3xl overflow-hidden shadow-sm border border-stone-200 transition-all group"
     >
       {/* Image */}
       <div className="relative aspect-[4/3] overflow-hidden">
@@ -60,10 +54,7 @@ export default function PetCard({
             src={pet.image_url}
             alt={pet.breed || pet.species}
             onError={() => setImgError(true)}
-            className={cn(
-              "w-full h-full object-cover transition-transform duration-500",
-              !isResolved && "group-hover:scale-105"
-            )}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
           <div className="w-full h-full bg-stone-100 flex items-center justify-center text-stone-300">
@@ -71,34 +62,11 @@ export default function PetCard({
           </div>
         )}
 
-        {/* Resolved overlay */}
-        {isResolved && (
-          <div className="absolute inset-0 flex items-center justify-center bg-emerald-900/20 backdrop-blur-[2px]">
-            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-white/90 p-4 rounded-full shadow-2xl">
-              <Heart size={48} className="text-red-500 fill-red-500" />
-            </motion.div>
-          </div>
-        )}
-
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          <span className={cn(
-            "px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm",
-            pet.type === 'lost' ? "bg-red-500 text-white" : "bg-blue-500 text-white"
-          )}>
-            {pet.type === 'lost' ? 'Perdu' : 'Trouvé'}
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-red-500 text-white">
+            Perdu
           </span>
-
-          {petMatch && !isResolved && (
-            <motion.button
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              onClick={() => onViewMatch(petMatch)}
-              className="px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-500 text-white shadow-lg flex items-center gap-1"
-            >
-              <Sparkles size={10} /> Match trouvé !
-            </motion.button>
-          )}
         </div>
 
         {/* Distance badge */}
@@ -165,13 +133,16 @@ export default function PetCard({
           <span className="truncate">{pet.location || 'Position non spécifiée'}</span>
         </div>
 
-        <div className="text-[10px] text-stone-400">
-          {formatDate(pet.created_at)}
+        <div className="flex items-center justify-between text-[10px] text-stone-400">
+          <span>{formatDate(pet.created_at)}</span>
+          <span className="flex items-center gap-1 font-bold">
+            <Eye size={12} /> {pet.sighting_count} vue(s) {pet.owner_notified && '• propriétaire prévenu'}
+          </span>
         </div>
 
         {/* Actions */}
         <div className="flex gap-2 pt-2">
-          {pet.contact && pet.contact !== 'Anonyme' && (
+          {pet.contact && (
             <a
               href={`tel:${pet.contact}`}
               className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-bold shadow-md shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95"
@@ -180,10 +151,16 @@ export default function PetCard({
             </a>
           )}
           <button
+            onClick={() => onSighting(pet)}
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-amber-500 text-white rounded-2xl text-sm font-bold shadow-md shadow-amber-200 hover:bg-amber-600 transition-all active:scale-95"
+          >
+            <Eye size={16} /> Je l'ai vu !
+          </button>
+          <button
             onClick={() => onShare(pet)}
             className="flex items-center justify-center gap-2 px-4 py-3 bg-stone-100 text-stone-600 rounded-2xl text-sm font-bold hover:bg-stone-200 transition-all active:scale-95"
           >
-            <Share2 size={16} /> Partager
+            <Share2 size={16} />
           </button>
         </div>
       </div>

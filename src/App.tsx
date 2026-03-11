@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import {
-  Search, Plus, MessageCircle, X, Loader2, PawPrint, RefreshCw, Navigation, AlertCircle,
+  Search, Plus, X, Loader2, PawPrint, RefreshCw, Navigation, AlertCircle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
@@ -9,15 +9,16 @@ import { cn } from './lib/utils';
 import { haversineKm } from './utils/matching';
 import { useGeolocation } from './hooks/useGeolocation';
 import { usePets } from './hooks/usePets';
-import type { Pet, Match } from './types';
+import { useAuth } from './hooks/useAuth';
+import type { Pet } from './types';
 
 // Components
 import Header from './components/Header';
 import PetCard from './components/PetCard';
-import MatchCard from './components/MatchCard';
-import MatchDetail from './components/MatchDetail';
 import ReportFormModal from './components/ReportForm';
 import AdminModal from './components/AdminModal';
+import AuthModal from './components/AuthModal';
+import SightingModal from './components/SightingModal';
 import DbSetupBanner from './components/DbSetupBanner';
 
 // Fix Leaflet icons
@@ -43,13 +44,14 @@ export default function App() {
   // State
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [radiusKm, setRadiusKm] = useState<number | null>(null);
+  const [breedFilter, setBreedFilter] = useState<string | null>(null);
   const [isReporting, setIsReporting] = useState(false);
-  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [isSighting, setIsSighting] = useState(false);
+  const [selectedPetForSighting, setSelectedPetForSighting] = useState<Pet | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [clickCount, setClickCount] = useState(0);
-  const [showWhatsAppBanner, setShowWhatsAppBanner] = useState(true);
-  const [newMatchNotify, setNewMatchNotify] = useState<Match | null>(null);
 
   // Pull to refresh
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -59,10 +61,11 @@ export default function App() {
 
   // Hooks
   const geo = useGeolocation();
+  const { user } = useAuth();
   const {
-    filteredPets, filteredMatches, dbStatus, isLoading, myReports,
-    addMyReport, fetchPets, fetchMatches, fetchDbStatus, refresh, getPetMatch,
-  } = usePets(geo.location, radiusKm);
+    filteredPets, dbStatus, isLoading,
+    fetchPets, fetchDbStatus, refresh,
+  } = usePets(geo.location, radiusKm, breedFilter);
 
   // Pull to refresh handlers
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -93,16 +96,15 @@ export default function App() {
     if (n >= 5) { setShowAdminLogin(true); setClickCount(0); }
   };
 
-  // WhatsApp share — FRENCH
-  const shareToWhatsApp = (pet: Pet) => {
-    const contact = pet.contact === 'Anonyme' ? 'Signalement anonyme' : pet.contact;
+  // Share to social — FRENCH
+  const shareToSocial = (pet: Pet) => {
     const text =
-      `🚨 ${pet.type === 'lost' ? 'ANIMAL PERDU' : 'ANIMAL TROUVÉ'} 🚨\n\n` +
+      `🚨 ANIMAL PERDU 🚨\n\n` +
       `${pet.species === 'dog' ? '🐶 Chien' : '🐱 Chat'}${pet.breed ? ` · ${pet.breed}` : ''}\n` +
       `Couleur: ${pet.color || 'Non précisée'}\n` +
       `📍 ${pet.location || 'Position non précisée'}\n` +
       `📝 ${pet.description || ''}\n` +
-      `📞 ${contact}\n\n` +
+      `📞 ${pet.contact}\n\n` +
       `Aidez-nous à retrouver cet animal ! Partagé via PetFinder Tunisia 🇹🇳`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
   };
@@ -121,27 +123,40 @@ export default function App() {
       const err = await res.json();
       throw new Error(err.error || 'Erreur serveur');
     }
-    const data = await res.json();
-    if (data.id) addMyReport(data.id);
     showToast('✅ Signalement publié !');
     fetchPets();
-    fetchMatches();
   };
 
-  // Match actions
-  const handleMatchStatus = async (matchId: number, status: 'confirmed' | 'rejected') => {
+  // Handle sighting
+  const handleSighting = (pet: Pet) => {
+    setSelectedPetForSighting(pet);
+    setIsSighting(true);
+  };
+
+  const handleSightingSubmit = async (formData: FormData) => {
+    if (!selectedPetForSighting) return;
     try {
-      const res = await fetch(`/api/matches/${matchId}/status`, {
+      // Add location and user_id
+      formData.append('lat', geo.location?.[0]?.toString() || '');
+      formData.append('lng', geo.location?.[1]?.toString() || '');
+      if (user) formData.append('user_id', user.id);
+
+      const res = await fetch(`/api/pets/${selectedPetForSighting.id}/sightings`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
+        body: formData,
       });
-      if (res.ok) {
-        fetchMatches();
-        setSelectedMatch(null);
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Erreur serveur');
       }
-    } catch (err) {
-      console.error('Failed to update match:', err);
+
+      showToast('✅ Merci d\'avoir signalé cet animal !');
+      fetchPets();
+      setIsSighting(false);
+      setSelectedPetForSighting(null);
+    } catch (err: any) {
+      throw new Error(err.message || 'Erreur lors du sighting');
     }
   };
 
@@ -195,27 +210,6 @@ export default function App() {
         </div>
       </motion.div>
 
-      {/* Match notification */}
-      <AnimatePresence>
-        {newMatchNotify && (
-          <motion.div
-            initial={{ opacity: 0, y: -100 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -100 }}
-            className="fixed top-4 left-4 right-4 z-[3000] bg-emerald-600 text-white p-4 rounded-3xl shadow-2xl flex items-center gap-4"
-          >
-            <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center shrink-0">
-              <PawPrint size={24} />
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-sm">Match Potentiel Trouvé ! 🐾</p>
-              <p className="text-[10px] opacity-90">Un animal correspondant a été détecté à proximité.</p>
-            </div>
-            <button onClick={() => { setSelectedMatch(newMatchNotify); setNewMatchNotify(null); }}
-              className="bg-white text-emerald-600 px-3 py-2 rounded-xl text-[10px] font-bold">Voir</button>
-            <button onClick={() => setNewMatchNotify(null)} className="p-2 hover:bg-white/10 rounded-xl"><X size={18} /></button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       {/* Toast */}
       <AnimatePresence>
         {toast && (
@@ -235,22 +229,8 @@ export default function App() {
         viewMode={viewMode} setViewMode={setViewMode}
         isAdmin={isAdmin} setIsAdmin={setIsAdmin}
         onLogoClick={handleLogoClick}
+        onAuthClick={() => setIsAuthOpen(true)}
       />
-
-      {/* WhatsApp banner */}
-      {showWhatsAppBanner && (
-        <div className="bg-emerald-600 px-6 py-2 flex items-center justify-between text-white text-[11px] font-bold">
-          <div className="flex items-center gap-2">
-            <MessageCircle size={14} />
-            <span>Rejoignez notre communauté WhatsApp pour aider les animaux 🐾</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={() => window.open('https://chat.whatsapp.com/D4T3gcHbX2VEu17ZpAjcQ0', '_blank')}
-              className="bg-white text-emerald-600 px-3 py-1 rounded-lg hover:bg-stone-100 transition-colors">Rejoindre</button>
-            <button onClick={() => setShowWhatsAppBanner(false)} className="p-1 hover:bg-white/20 rounded-full"><X size={14} /></button>
-          </div>
-        </div>
-      )}
 
       {/* DB Setup */}
       {dbStatus && <DbSetupBanner dbStatus={dbStatus} onRecheck={fetchDbStatus} />}
@@ -285,6 +265,32 @@ export default function App() {
           </div>
         </div>
 
+        {/* Breed filter - horizontal scrollable */}
+        <div className="overflow-x-auto pb-2">
+          <div className="flex gap-2 min-w-min">
+            <button
+              onClick={() => setBreedFilter(null)}
+              className={cn(
+                'px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap',
+                breedFilter === null ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+              )}
+            >
+              Toutes races
+            </button>
+            {['Berger Allemand', 'Labrador', 'Golden Retriever', 'Beagle', 'Caniche', 'Rottweiler', 'Bulldog', 'Persan', 'Siamois', 'Maine Coon'].map(breed => (
+              <button key={breed}
+                onClick={() => setBreedFilter(breed)}
+                className={cn(
+                  'px-4 py-2 rounded-2xl text-xs font-bold transition-all whitespace-nowrap',
+                  breedFilter === breed ? 'bg-emerald-600 text-white' : 'bg-stone-100 text-stone-500 hover:bg-stone-200'
+                )}
+              >
+                {breed}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {geo.status === 'denied' && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 0.9, y: 0 }}
             className="bg-stone-100 border border-stone-200 p-3 rounded-2xl flex items-center gap-3">
@@ -312,21 +318,6 @@ export default function App() {
           <AnimatePresence mode="wait">
             {viewMode === 'list' ? (
               <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
-                {/* Matches */}
-                {filteredMatches.length > 0 && (
-                  <div className="space-y-4 mb-8">
-                    <div className="flex items-center gap-2 px-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
-                      <h2 className="font-display font-bold text-stone-800">Matchs Potentiels</h2>
-                    </div>
-                    {filteredMatches.map(match => (
-                      <MatchCard key={match.id} match={match} myReports={myReports}
-                        onConfirm={id => handleMatchStatus(id, 'confirmed')}
-                        onViewDetails={setSelectedMatch} />
-                    ))}
-                  </div>
-                )}
-
                 {/* Pet list */}
                 {filteredPets.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-stone-400 text-center">
@@ -342,14 +333,13 @@ export default function App() {
                       ? haversineKm(geo.location[0], geo.location[1], pet.lat, pet.lng)
                       : undefined;
                     return (
+                      // @ts-ignore
                       <PetCard key={pet.id} pet={pet}
-                        petMatch={getPetMatch(pet.id)}
                         isAdmin={isAdmin}
                         userLocation={geo.location}
-                        onShare={shareToWhatsApp}
+                        onShare={shareToSocial}
                         onDelete={handleDelete}
-                        onViewMatch={setSelectedMatch}
-                        onConfirmMatch={id => handleMatchStatus(id, 'confirmed')}
+                        onSighting={handleSighting}
                         distanceKm={dist ? Math.round(dist * 10) / 10 : undefined}
                       />
                     );
@@ -422,17 +412,26 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <MatchDetail
-        match={selectedMatch}
-        onClose={() => setSelectedMatch(null)}
-        onConfirm={id => handleMatchStatus(id, 'confirmed')}
-        onReject={id => handleMatchStatus(id, 'rejected')}
-      />
-
       <AdminModal
         isOpen={showAdminLogin}
         onClose={() => setShowAdminLogin(false)}
         onLogin={handleAdminLogin}
+      />
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+      />
+
+      <SightingModal
+        isOpen={isSighting}
+        pet={selectedPetForSighting}
+        onClose={() => {
+          setIsSighting(false);
+          setSelectedPetForSighting(null);
+        }}
+        onSubmit={handleSightingSubmit}
+        userLocation={geo.location}
       />
     </div>
   );
