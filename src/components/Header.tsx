@@ -1,5 +1,5 @@
 import React from 'react';
-import { PawPrint, MapPin as MapIcon, LayoutGrid, ShieldCheck, X, LogIn } from 'lucide-react';
+import { PawPrint, MapPin as MapIcon, LayoutGrid, ShieldCheck, X, LogIn, LogOut } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
 
@@ -13,7 +13,16 @@ interface HeaderProps {
 }
 
 export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onLogoClick, onAuthClick }: HeaderProps) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-[1000] glass px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2 cursor-pointer select-none" onClick={onLogoClick}>
@@ -51,14 +60,25 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
             </button>
           </>
         )}
-        <button
-          onClick={onAuthClick}
-          className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
-          title={user ? 'Gérer le compte' : 'Se connecter'}
-        >
-          <LogIn size={14} className="text-emerald-600" />
-          <span className="text-xs font-bold">Log</span>
-        </button>
+        {user ? (
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
+            title="Se déconnecter"
+          >
+            <LogOut size={14} className="text-red-600" />
+            <span className="text-xs font-bold">Déco</span>
+          </button>
+        ) : (
+          <button
+            onClick={onAuthClick}
+            className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
+            title="Se connecter"
+          >
+            <LogIn size={14} className="text-emerald-600" />
+            <span className="text-xs font-bold">Log</span>
+          </button>
+        )}
         <button
           onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
           className="flex items-center gap-2 px-4 py-2 text-stone-700 bg-stone-100 rounded-2xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"

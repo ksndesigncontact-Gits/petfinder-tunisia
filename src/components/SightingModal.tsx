@@ -149,7 +149,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Photo */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Photo du sighting <span className="text-stone-400 normal-case">(optionnel)</span>
+                  Photo du signalement <span className="text-stone-400 normal-case">(optionnel)</span>
                 </label>
                 <label className={`flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-3xl cursor-pointer transition-all ${
                   imagePreview ? 'border-amber-300 bg-amber-50/30' : 'border-stone-300 hover:border-amber-400 hover:bg-stone-50'
@@ -185,7 +185,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Position on map */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Position du sighting <span className="text-stone-400 normal-case">(optionnel - clique sur la carte)</span>
+                  Position du signalement <span className="text-stone-400 normal-case">(optionnel - clique sur la carte)</span>
                 </label>
                 <div className="h-48 rounded-2xl overflow-hidden border border-stone-200">
                   <MapContainer
@@ -253,7 +253,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
                 {isSubmitting ? (
                   <><Loader2 className="animate-spin" size={20} /> Envoi en cours...</>
                 ) : (
-                  <><Eye size={20} /> Confirmer le sighting</>
+                  <><Eye size={20} /> Confirmer le signalement</>
                 )}
               </button>
             </form>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Loader2, LogOut } from 'lucide-react';
+import { X, Loader2, LogOut, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface AuthModalProps {
 
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const { user, isLoading, signInWithGoogle, signInWithEmail, signUpWithEmail, signOut } = useAuth();
+  const { lang, setLang } = useLanguage();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,6 +86,26 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-xl transition-colors">
                 <X size={20} />
               </button>
+            </div>
+
+            {/* Language Selector */}
+            <div className="flex items-center gap-2 mb-6 p-3 bg-stone-100 rounded-2xl">
+              <Globe size={16} className="text-stone-600" />
+              <div className="flex gap-2 flex-1">
+                {(['fr', 'en', 'ar'] as const).map(l => (
+                  <button
+                    key={l}
+                    onClick={() => setLang(l)}
+                    className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      lang === l
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-stone-200 text-stone-600 hover:bg-stone-300'
+                    }`}
+                  >
+                    {l === 'fr' ? 'FR' : l === 'en' ? 'EN' : 'AR'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {user ? (

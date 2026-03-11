@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { PawPrint, MapPin, Phone, Share2, Eye, Trash2, AlertCircle } from 'lucide-react';
+import { PawPrint, MapPin, Phone, Share2, Eye, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '../lib/utils';
+import { cn, isValidTunisianPhone } from '../lib/utils';
 import type { Pet } from '../types';
 
 interface PetCardProps {
@@ -67,6 +67,11 @@ export default function PetCard({
           <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-red-500 text-white">
             Perdu
           </span>
+          {pet.contact && isValidTunisianPhone(pet.contact) && (
+            <span className="flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-sm bg-blue-500 text-white">
+              <CheckCircle size={10} /> Vérifié
+            </span>
+          )}
         </div>
 
         {/* Distance badge */}
@@ -128,15 +133,18 @@ export default function PetCard({
           <p className="text-sm text-stone-600 leading-relaxed line-clamp-3">{pet.description}</p>
         )}
 
-        <div className="flex items-center gap-2 text-xs text-stone-400">
+        <button
+          onClick={() => onSighting(pet)}
+          className="flex items-center gap-2 text-xs text-stone-400 hover:text-stone-600 transition-colors cursor-pointer"
+        >
           <MapPin size={12} />
           <span className="truncate">{pet.location || 'Position non spécifiée'}</span>
-        </div>
+        </button>
 
         <div className="flex items-center justify-between text-[10px] text-stone-400">
           <span>{formatDate(pet.created_at)}</span>
           <span className="flex items-center gap-1 font-bold">
-            <Eye size={12} /> {pet.sighting_count} vue(s) {pet.owner_notified && '• propriétaire prévenu'}
+            <Eye size={12} /> {pet.sighting_count} l'ont vu{pet.sighting_count > 1 ? 's' : ''} {pet.owner_notified && '• propriétaire prévenu'}
           </span>
         </div>
 

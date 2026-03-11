@@ -52,6 +52,7 @@ export default function App() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
   const [clickCount, setClickCount] = useState(0);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Pull to refresh
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -61,11 +62,21 @@ export default function App() {
 
   // Hooks
   const geo = useGeolocation();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const {
     filteredPets, dbStatus, isLoading,
     fetchPets, fetchDbStatus, refresh,
   } = usePets(geo.location, radiusKm, breedFilter);
+
+  // Show login modal on startup if not authenticated
+  React.useEffect(() => {
+    if (!authLoading && !authChecked) {
+      setAuthChecked(true);
+      if (!user) {
+        setIsAuthOpen(true);
+      }
+    }
+  }, [authLoading, user, authChecked]);
 
   // Pull to refresh handlers
   const handleTouchStart = (e: React.TouchEvent) => {
