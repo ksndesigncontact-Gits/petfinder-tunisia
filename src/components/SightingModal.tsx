@@ -192,7 +192,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
                   {t('positionOfSighting')} <span className="text-stone-400 normal-case">{t('clickOnMap')}</span>
                 </label>
-                <div className="h-48 rounded-2xl overflow-hidden border border-stone-200">
+                <div className="h-48 rounded-2xl overflow-hidden border border-stone-200 mx-auto" style={{ maxWidth: '90%' }}>
                   <MapContainer
                     center={[lat || userLocation?.[0] || 36.8065, lng || userLocation?.[1] || 10.1815]}
                     zoom={13}

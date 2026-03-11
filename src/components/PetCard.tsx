@@ -146,7 +146,7 @@ export default function PetCard({
         <div className="flex items-center justify-between text-[10px] text-stone-400">
           <span>{formatDate(pet.created_at)}</span>
           <span className="flex items-center gap-1 font-bold">
-            <Eye size={12} /> {pet.sighting_count} l'ont vu{pet.sighting_count > 1 ? 's' : ''} {pet.owner_notified && '• propriétaire prévenu'}
+            <Eye size={12} /> {pet.sighting_count} {t('sawThat')} {pet.owner_notified && `• ${t('ownerNotified')}`}
           </span>
         </div>
 

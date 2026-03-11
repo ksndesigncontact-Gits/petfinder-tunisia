@@ -3,6 +3,8 @@ import { PawPrint, MapPin as MapIcon, LayoutGrid, ShieldCheck, X, LogIn, LogOut 
 import { cn } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
 import { useT } from '../hooks/useLanguage';
+import { useNotifications } from '../hooks/useNotifications';
+import NotificationBell from './NotificationBell';
 
 interface HeaderProps {
   viewMode: 'list' | 'map';
@@ -16,6 +18,7 @@ interface HeaderProps {
 export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onLogoClick, onAuthClick }: HeaderProps) {
   const { user, signOut } = useAuth();
   const t = useT();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const handleLogout = async () => {
     try {
@@ -81,9 +84,15 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
             <span className="text-xs font-bold">Log</span>
           </button>
         )}
+        <NotificationBell
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAsRead={markAsRead}
+          onMarkAllAsRead={markAllAsRead}
+        />
         <button
           onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
-          className="flex items-center gap-2 px-4 py-2 text-stone-700 bg-stone-100 rounded-2xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
+          className="flex items-center gap-2 px-3 py-2 text-stone-700 bg-stone-100 rounded-2xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm text-sm sm:text-base whitespace-nowrap"
         >
           {viewMode === 'list' ? (
             <>

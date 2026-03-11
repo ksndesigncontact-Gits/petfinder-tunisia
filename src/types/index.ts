@@ -42,6 +42,19 @@ export interface ReportForm {
   imagePreview: string;
 }
 
+export interface Notification {
+  id: number;
+  pet_id: number;
+  sighting_id: number;
+  contact_phone: string | null;
+  message: string | null;
+  location: string | null;
+  lat: number | null;
+  lng: number | null;
+  is_read: boolean;
+  created_at: string;
+}
+
 export interface DbStatus {
   petsTable: boolean;
   missingColumns: string[];

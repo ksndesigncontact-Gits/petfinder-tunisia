@@ -421,6 +421,57 @@ async function startServer() {
     }
   });
 
+  // GET /api/notifications - Fetch all notifications (polling endpoint)
+  app.get("/api/notifications", async (_req, res) => {
+    try {
+      const supabase = getSupabase();
+      const { data, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      res.json(data || []);
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/notifications/:id/read - Mark notification as read
+  app.put("/api/notifications/:id/read", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const supabase = getSupabase();
+      const { data, error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", id)
+        .select();
+
+      if (error) throw error;
+      res.json(data?.[0] || {});
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // PUT /api/notifications/mark-all-read - Mark all notifications as read
+  app.put("/api/notifications/mark-all-read", async (_req, res) => {
+    try {
+      const supabase = getSupabase();
+      const { error } = await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("is_read", false);
+
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   // DEPRECATED ENDPOINTS — kept for compatibility
   app.get("/api/matches", async (_req, res) => res.json([]));
   app.post("/api/matches/preview", async (_req, res) => res.json([]));
