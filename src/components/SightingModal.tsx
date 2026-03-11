@@ -74,13 +74,17 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
       return;
     }
 
-    // Validate: at least 1 of (contact OR image OR position)
+    // Validate: REQUIRED: contact AND position
     const hasContact = contact.replace(/\D/g, '').length === 8;
-    const hasImage = image != null;
     const hasPosition = lat != null && lng != null;
 
-    if (!hasContact && !hasImage && !hasPosition) {
-      setError('Au moins 1 requis: numéro tunisien (8 chiffres) OU photo OU position sur la carte.');
+    if (!hasContact) {
+      setError('Numéro tunisien obligatoire (8 chiffres).');
+      return;
+    }
+
+    if (!hasPosition) {
+      setError('Position sur la carte obligatoire. Clique sur la carte.');
       return;
     }
 

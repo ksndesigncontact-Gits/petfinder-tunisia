@@ -385,7 +385,7 @@ async function startServer() {
 
       if (sightingError) return res.status(500).json({ error: sightingError.message });
 
-      // Increment sighting count
+      // Increment sighting count and create notification
       const { data: pet, error: petError } = await supabase
         .from("pets")
         .select("sighting_count")
@@ -397,6 +397,23 @@ async function startServer() {
           .from("pets")
           .update({ sighting_count: (pet.sighting_count || 0) + 1 })
           .eq("id", petId);
+      }
+
+      // Create notification for pet owner
+      if (sighting?.[0]) {
+        await supabase
+          .from("notifications")
+          .insert([{
+            pet_id: petId,
+            sighting_id: sighting[0].id,
+            contact_phone: contact_phone || null,
+            message: message || null,
+            location: location || null,
+            lat: lat || null,
+            lng: lng || null,
+            is_read: false,
+          }])
+          .catch(err => console.warn("[NOTIFICATION] Insert error:", err));
       }
 
       res.json({ success: true, sighting: sighting?.[0] });

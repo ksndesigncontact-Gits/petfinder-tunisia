@@ -53,11 +53,11 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
         )}
         <button
           onClick={onAuthClick}
-          className="flex items-center gap-2 px-4 py-2 text-stone-700 bg-stone-100 rounded-2xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
+          className="flex items-center gap-1 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm"
           title={user ? 'Gérer le compte' : 'Se connecter'}
         >
-          <LogIn size={18} className="text-emerald-600" />
-          <span className="text-sm font-bold">LOG IN</span>
+          <LogIn size={14} className="text-emerald-600" />
+          <span className="text-xs font-bold">Log</span>
         </button>
         <button
           onClick={() => setViewMode(viewMode === 'list' ? 'map' : 'list')}
