@@ -10,6 +10,7 @@ import { haversineKm } from './utils/matching';
 import { useGeolocation } from './hooks/useGeolocation';
 import { usePets } from './hooks/usePets';
 import { useAuth } from './hooks/useAuth';
+import { useT } from './hooks/useLanguage';
 import type { Pet } from './types';
 
 // Components
@@ -41,6 +42,9 @@ function MapUpdater({ center }: { center: [number, number] }) {
 }
 
 export default function App() {
+  // Hooks
+  const t = useT();
+
   // State
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list');
   const [radiusKm, setRadiusKm] = useState<number | null>(null);
@@ -248,9 +252,9 @@ export default function App() {
 
       {/* Feed Header */}
       <div className="px-6 mt-6 flex items-center justify-between">
-        <h2 className="font-display font-bold text-2xl text-stone-800">Signalements Récents</h2>
+        <h2 className="font-display font-bold text-2xl text-stone-800">{t('recentReports')}</h2>
         <div className="bg-stone-100 px-3 py-1 rounded-full text-xs font-bold text-stone-500">
-          {filteredPets.length} animaux
+          {filteredPets.length} {t('animals')}
         </div>
       </div>
 
@@ -307,12 +311,12 @@ export default function App() {
             className="bg-stone-100 border border-stone-200 p-3 rounded-2xl flex items-center gap-3">
             <AlertCircle className="text-stone-400 shrink-0" size={20} />
             <div className="flex-1">
-              <p className="text-xs font-bold text-stone-700">Position GPS non activée</p>
-              <p className="text-[10px] text-stone-500">Activez pour voir les animaux autour de vous.</p>
+              <p className="text-xs font-bold text-stone-700">{t('gpsNotEnabled')}</p>
+              <p className="text-[10px] text-stone-500">{t('enableGps')}</p>
             </div>
             <button onClick={geo.requestLocation}
               className="bg-emerald-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors">
-              Activer
+              {t('activate')}
             </button>
           </motion.div>
         )}
@@ -335,8 +339,8 @@ export default function App() {
                     <div className="w-20 h-20 bg-stone-100 rounded-full flex items-center justify-center mb-4">
                       <Search size={32} />
                     </div>
-                    <p className="font-medium text-stone-600">Aucun signalement dans cette zone</p>
-                    <p className="text-sm">Augmentez le rayon ou soyez le premier à signaler.</p>
+                    <p className="font-medium text-stone-600">{t('noReports')}</p>
+                    <p className="text-sm">{t('beFirstToReport')}</p>
                   </div>
                 ) : (
                   filteredPets.map(pet => {

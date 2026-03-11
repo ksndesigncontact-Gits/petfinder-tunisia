@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import imageCompression from 'browser-image-compression';
+import { useT, useLanguage } from '../hooks/useLanguage';
 import type { Pet } from '../types';
 
 // Fix Leaflet icons
@@ -33,6 +34,8 @@ interface SightingModalProps {
 }
 
 export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLocation }: SightingModalProps) {
+  const t = useT();
+  const { lang } = useLanguage();
   const [contact, setContact] = useState('');
   const [message, setMessage] = useState('');
   const [image, setImage] = useState<File | null>(null);
@@ -131,7 +134,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
             <div className="sticky top-0 bg-white/90 backdrop-blur-md z-10 px-6 py-5 border-b border-stone-100 flex items-center justify-between rounded-t-[2.5rem]">
               <div className="flex items-center gap-3">
                 <Eye className="text-amber-500" size={24} />
-                <h2 className="font-display font-bold text-xl text-stone-800">Je l'ai vu !</h2>
+                <h2 className="font-display font-bold text-xl text-stone-800">{t('iSawIt')}</h2>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-stone-100 rounded-xl transition-colors">
                 <X size={20} />
@@ -151,7 +154,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Photo */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Photo du signalement <span className="text-stone-400 normal-case">(optionnel)</span>
+                  {t('photoOfSighting')} <span className="text-stone-400 normal-case">{t('optional')}</span>
                 </label>
                 <label className={`flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed rounded-3xl cursor-pointer transition-all ${
                   imagePreview ? 'border-amber-300 bg-amber-50/30' : 'border-stone-300 hover:border-amber-400 hover:bg-stone-50'
@@ -173,7 +176,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Message */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Décrivez ce que vous avez vu
+                  {t('describeWhatYouSaw')}
                 </label>
                 <textarea
                   value={message}
@@ -187,7 +190,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Position on map */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Position du signalement <span className="text-stone-400 normal-case">(optionnel - clique sur la carte)</span>
+                  {t('positionOfSighting')} <span className="text-stone-400 normal-case">{t('clickOnMap')}</span>
                 </label>
                 <div className="h-48 rounded-2xl overflow-hidden border border-stone-200">
                   <MapContainer
@@ -219,7 +222,7 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
               {/* Contact */}
               <div>
                 <label className="text-xs font-bold text-stone-500 uppercase tracking-wider mb-2 block">
-                  Numéro de contact (8 chiffres) <span className="text-stone-400 normal-case">(optionnel)</span>
+                  {t('phoneNumber')} <span className="text-stone-400 normal-case">{t('optional')}</span>
                 </label>
                 <div className="flex gap-2">
                   <div className="bg-stone-200 rounded-2xl px-4 py-4 text-sm font-bold text-stone-600 flex items-center">
@@ -253,9 +256,9 @@ export default function SightingModal({ isOpen, pet, onClose, onSubmit, userLoca
                 className="w-full py-5 bg-amber-500 text-white rounded-2xl font-bold text-lg shadow-xl shadow-amber-200 hover:bg-amber-600 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isSubmitting ? (
-                  <><Loader2 className="animate-spin" size={20} /> Envoi en cours...</>
+                  <><Loader2 className="animate-spin" size={20} /> {t('sending')}</>
                 ) : (
-                  <><Eye size={20} /> Confirmer le signalement</>
+                  <><Eye size={20} /> {t('confirmSighting')}</>
                 )}
               </button>
             </form>
