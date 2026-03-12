@@ -400,19 +400,29 @@ async function startServer() {
 
       // Create notification for pet owner
       if (sighting?.[0]) {
+        const { data: pet } = await supabase.from("pets").select("name, species").eq("id", petId).single();
+        const petName = pet?.name && pet.name !== 'Inconnu' ? pet.name : (pet?.species || 'Animal');
+        const speciesEmoji = pet?.species === 'dog' ? '🐶' : '🐱';
+        const notificationMessage = `Quelqu'un a signalé avoir vu ${speciesEmoji} ${petName}!`;
+
         const { error } = await supabase
           .from("notifications")
           .insert([{
             pet_id: petId,
             sighting_id: sighting[0].id,
             contact_phone: contact_phone || null,
-            message: message || null,
+            message: notificationMessage,
             location: location || null,
             lat: lat || null,
             lng: lng || null,
             is_read: false,
+            created_at: new Date().toISOString(),
           }]);
-        if (error) console.warn("[NOTIFICATION] Insert error:", error);
+        if (error) {
+          console.warn("[NOTIFICATION] Insert error:", error);
+        } else {
+          console.log("[NOTIFICATION] Created for pet", petId);
+        }
       }
 
       res.json({ success: true, sighting: sighting?.[0] });
@@ -431,9 +441,14 @@ async function startServer() {
         .order("created_at", { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error("[GET /api/notifications] Query error:", error);
+        throw error;
+      }
+      console.log(`[GET /api/notifications] Returning ${data?.length || 0} notifications`);
       res.json(data || []);
     } catch (err: any) {
+      console.error("[GET /api/notifications] Error:", err.message);
       res.status(500).json({ error: err.message });
     }
   });
