@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Notification } from '../types';
 
-export function useNotifications() {
+export function useNotifications(userId?: string) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   const fetchNotifications = useCallback(async () => {
+    if (!userId) return;
     try {
-      const res = await fetch('/api/notifications');
+      const res = await fetch(`/api/notifications?owner_id=${userId}`);
       if (!res.ok) throw new Error('Failed to fetch notifications');
       const data: Notification[] = await res.json();
       setNotifications(data);
@@ -15,7 +16,7 @@ export function useNotifications() {
     } catch (err) {
       console.error('Fetch notifications error:', err);
     }
-  }, []);
+  }, [userId]);
 
   const markAsRead = useCallback(async (notificationId: number | string) => {
     try {
@@ -45,13 +46,14 @@ export function useNotifications() {
     }
   }, []);
 
-  // Polling every 3 seconds
+  // Polling every 3 seconds (only if logged in)
   useEffect(() => {
+    if (!userId) return;
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 3000);
 
     return () => clearInterval(interval);
-  }, [fetchNotifications]);
+  }, [userId, fetchNotifications]);
 
   return { notifications, unreadCount, markAsRead, markAllAsRead };
 }

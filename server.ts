@@ -278,7 +278,7 @@ async function startServer() {
       if (req.body.website) return res.status(400).json({ error: "Spam détecté" });
 
       const supabase = getSupabase();
-      const { type, species, breed, color, description, location, contact, lat, lng, name, pet_status } = req.body;
+      const { type, species, breed, color, description, location, contact, lat, lng, name, pet_status, owner_id } = req.body;
 
       const insertData: any = {
         type: 'lost', species, breed, color, description, location, contact,
@@ -289,6 +289,7 @@ async function startServer() {
         pet_status: pet_status || "toujours_errant",
         sighting_count: 0,
         owner_notified: false,
+        owner_id: owner_id || null,
       };
 
       // Handle image upload
@@ -400,7 +401,7 @@ async function startServer() {
 
       // Create notification for pet owner
       if (sighting?.[0]) {
-        const { data: pet } = await supabase.from("pets").select("name, species").eq("id", petId).single();
+        const { data: pet } = await supabase.from("pets").select("name, species, owner_id").eq("id", petId).single();
         const petName = pet?.name && pet.name !== 'Inconnu' ? pet.name : (pet?.species || 'Animal');
         const speciesEmoji = pet?.species === 'dog' ? '🐶' : '🐱';
         const notificationMessage = `Quelqu'un a signalé avoir vu ${speciesEmoji} ${petName}!`;
@@ -410,6 +411,7 @@ async function startServer() {
           .insert([{
             pet_id: petId,
             sighting_id: sighting[0].id,
+            owner_id: pet?.owner_id || null,
             contact_phone: contact_phone || null,
             message: notificationMessage,
             location: location || null,
@@ -421,7 +423,7 @@ async function startServer() {
         if (error) {
           console.warn("[NOTIFICATION] Insert error:", error);
         } else {
-          console.log("[NOTIFICATION] Created for pet", petId);
+          console.log("[NOTIFICATION] Created for pet", petId, "owner", pet?.owner_id);
         }
       }
 
@@ -431,21 +433,29 @@ async function startServer() {
     }
   });
 
-  // GET /api/notifications - Fetch all notifications (polling endpoint)
-  app.get("/api/notifications", async (_req, res) => {
+  // GET /api/notifications - Fetch notifications for logged-in user
+  app.get("/api/notifications", async (req, res) => {
     try {
+      const { owner_id } = req.query;
       const supabase = getSupabase();
-      const { data, error } = await supabase
+
+      let query = supabase
         .from("notifications")
         .select("*")
         .order("created_at", { ascending: false })
         .limit(50);
 
+      if (owner_id) {
+        query = query.eq("owner_id", owner_id as string);
+      }
+
+      const { data, error } = await query;
+
       if (error) {
         console.error("[GET /api/notifications] Query error:", error);
         throw error;
       }
-      console.log(`[GET /api/notifications] Returning ${data?.length || 0} notifications`);
+      console.log(`[GET /api/notifications] Returning ${data?.length || 0} notifications for owner ${owner_id}`);
       res.json(data || []);
     } catch (err: any) {
       console.error("[GET /api/notifications] Error:", err.message);

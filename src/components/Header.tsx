@@ -19,8 +19,10 @@ interface HeaderProps {
 export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onLogoClick, onAuthClick }: HeaderProps) {
   const { user, signOut } = useAuth();
   const t = useT();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications(user?.id);
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const userEmailShort = user?.email?.split('@')[0].substring(0, 4) || '';
 
   const handleLogout = async () => {
     try {
@@ -66,7 +68,7 @@ export default function Header({ viewMode, setViewMode, isAdmin, setIsAdmin, onL
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 px-3 py-2 text-stone-700 bg-stone-100 rounded-xl hover:bg-stone-200 transition-all active:scale-95 border border-stone-200 shadow-sm whitespace-nowrap text-sm"
             >
-              <span className="font-bold">{user.email?.split('@')[0]}</span>
+              <span className="font-bold">{userEmailShort}</span>
               <ChevronDown size={14} className={`transition-transform ${showUserMenu ? 'rotate-180' : ''}`} />
             </button>
 

@@ -26,7 +26,11 @@ interface ReportFormModalProps {
   userLocation: [number, number] | null;
 }
 
-export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocation }: ReportFormModalProps) {
+interface ReportFormModalPropsWithUser extends ReportFormModalProps {
+  userId?: string;
+}
+
+export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocation, userId }: ReportFormModalPropsWithUser) {
   const t = useT();
   const { lang } = useLanguage();
   const [form, setForm] = useState<ReportForm>({
@@ -162,6 +166,7 @@ export default function ReportFormModal({ isOpen, onClose, onSubmit, userLocatio
     formData.append('website', honeypot);
     if (form.lat != null) formData.append('lat', form.lat.toString());
     if (form.lng != null) formData.append('lng', form.lng.toString());
+    if (userId) formData.append('owner_id', userId);
     if (fileToUpload) formData.append('image', fileToUpload);
 
     setIsSubmitting(true);

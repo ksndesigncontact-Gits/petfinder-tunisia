@@ -421,6 +421,7 @@ export default function App() {
             onClose={() => setIsReporting(false)}
             onSubmit={handleReportSubmit}
             userLocation={geo.location}
+            userId={user?.id}
           />
         )}
       </AnimatePresence>

@@ -1,24 +1,24 @@
 import React, { useState } from 'react';
-import { PawPrint, MapPin, Phone, Share2, Eye, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
+import { PawPrint, MapPin, Phone, Eye, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn, isValidTunisianPhone } from '../lib/utils';
 import { useT } from '../hooks/useLanguage';
+import ShareMenu from './ShareMenu';
 import type { Pet } from '../types';
 
 interface PetCardProps {
   pet: Pet;
   isAdmin: boolean;
   userLocation: [number, number] | null;
-  onShare: (pet: Pet) => void;
   onDelete: (id: number | string) => void;
   onSighting: (pet: Pet) => void;
   distanceKm?: number;
 }
 
 export default function PetCard({
-  pet, isAdmin, userLocation, onShare, onDelete, onSighting, distanceKm
+  pet, isAdmin, userLocation, onDelete, onSighting, distanceKm
 }: PetCardProps) {
   const t = useT();
   const [imgError, setImgError] = useState(false);
@@ -166,12 +166,7 @@ export default function PetCard({
           >
             <Eye size={16} /> {t('iSawIt')}
           </button>
-          <button
-            onClick={() => onShare(pet)}
-            className="flex items-center justify-center gap-2 px-4 py-3 bg-stone-100 text-stone-600 rounded-2xl text-sm font-bold hover:bg-stone-200 transition-all active:scale-95"
-          >
-            <Share2 size={16} />
-          </button>
+          <ShareMenu pet={pet} />
         </div>
       </div>
     </motion.div>

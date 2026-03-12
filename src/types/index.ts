@@ -46,6 +46,7 @@ export interface Notification {
   id: number;
   pet_id: number;
   sighting_id: number;
+  owner_id: string | null;
   contact_phone: string | null;
   message: string | null;
   location: string | null;
